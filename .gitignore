@@ -7,3 +7,4 @@ portable/
 .nuget/
 .runtime/
 *.log
+Assets/*-chroma.png
