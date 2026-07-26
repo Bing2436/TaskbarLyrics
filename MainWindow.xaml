@@ -1,0 +1,48 @@
+<Window x:Class="TaskbarLyrics.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="任务栏歌词"
+        Width="620" Height="46"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Focusable="False"
+        ResizeMode="NoResize">
+    <Border x:Name="LyricsPanel"
+            Margin="3"
+            Padding="16,3"
+            CornerRadius="10"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            BorderThickness="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="15" />
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="CurrentLine"
+                       Text="任务栏歌词已启动 · 请用 QQ 音乐播放歌曲"
+                       Foreground="#FFF5F5F5"
+                       FontFamily="Microsoft YaHei UI"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       TextAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       VerticalAlignment="Center">
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="1" Opacity=".9" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock x:Name="NextLine"
+                       Grid.Row="1"
+                       Foreground="#B8FFFFFF"
+                       FontFamily="Microsoft YaHei UI"
+                       FontSize="9.5"
+                       TextAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       VerticalAlignment="Center" />
+        </Grid>
+    </Border>
+</Window>
