@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly CancellationTokenSource _shutdown = new();
     private readonly Forms.NotifyIcon _trayIcon;
+    private readonly System.Drawing.Icon _appIcon;
     private AppSettings _settings;
     private IReadOnlyList<LyricLine> _currentLyrics = [];
     private string _trackKey = string.Empty;
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
         _settings = _settingsService.Load();
         Width = _settings.Width;
 
+        _appIcon = LoadAppIcon();
         _trayIcon = CreateTrayIcon();
         SourceInitialized += OnSourceInitialized;
         Loaded += OnLoaded;
@@ -227,7 +229,7 @@ public partial class MainWindow : Window
         return new Forms.NotifyIcon
         {
             Text = "任务栏歌词",
-            Icon = SystemIcons.Information,
+            Icon = _appIcon,
             ContextMenuStrip = menu,
             Visible = true
         };
@@ -260,6 +262,21 @@ public partial class MainWindow : Window
         _shutdown.Cancel();
         _trayIcon.Visible = false;
         _trayIcon.Dispose();
+        _appIcon.Dispose();
         System.Windows.Application.Current.Shutdown();
+    }
+
+    private static System.Drawing.Icon LoadAppIcon()
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
+                return System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath)
+                       ?? (System.Drawing.Icon)SystemIcons.Application.Clone();
+        }
+        catch
+        {
+        }
+        return (System.Drawing.Icon)SystemIcons.Application.Clone();
     }
 }

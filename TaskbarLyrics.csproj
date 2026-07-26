@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>TaskbarLyrics</AssemblyName>
     <RootNamespace>TaskbarLyrics</RootNamespace>
-    <ApplicationIcon />
+    <ApplicationIcon>Assets\TaskbarLyrics.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="LyricsProbe\**\*.cs" />
