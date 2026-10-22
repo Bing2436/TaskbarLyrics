@@ -1,5 +1,11 @@
 using TaskbarLyrics;
 
+if (args.Contains("--overlay"))
+{
+    Environment.ExitCode = OverlayProbe.Run();
+    return;
+}
+
 var service = new LyricsService();
 var track = new TrackInfo(
     "成都", "赵雷", TimeSpan.Zero, TimeSpan.FromSeconds(328), true, "QQMusic.exe");

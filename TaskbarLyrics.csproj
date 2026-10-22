@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>TaskbarLyrics</AssemblyName>
     <RootNamespace>TaskbarLyrics</RootNamespace>
+    <Version>1.0.1</Version>
     <ApplicationIcon>Assets\TaskbarLyrics.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

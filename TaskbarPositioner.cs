@@ -13,6 +13,21 @@ public static class TaskbarPositioner
     private const int WsExToolWindow = 0x00000080;
     private const int WsExNoActivate = 0x08000000;
 
+    public static void KeepAboveApplications(Window window)
+    {
+        if (!window.IsVisible)
+            return;
+
+        var handle = new WindowInteropHelper(window).Handle;
+        if (handle == IntPtr.Zero)
+            return;
+
+        // Reassert native Z-order even when WPF's Topmost property is already true.
+        // Do not activate or show the window: user-requested hiding must be respected.
+        const uint flags = 0x0001 | 0x0002 | 0x0010 | 0x0200;
+        SetWindowPos(handle, new IntPtr(-1), 0, 0, 0, 0, flags);
+    }
+
     public static void MakeClickThrough(Window window)
     {
         var handle = new WindowInteropHelper(window).Handle;
@@ -26,6 +41,25 @@ public static class TaskbarPositioner
         var data = new AppBarData { cbSize = Marshal.SizeOf<AppBarData>() };
         if (SHAppBarMessage(AbmGetTaskbarPos, ref data) == IntPtr.Zero)
             return;
+
+        // An auto-hidden taskbar can report a rectangle partly outside the display.
+        // Keep lyrics inside the monitor even while the taskbar itself is hidden.
+        var monitor = new MonitorInfo { cbSize = Marshal.SizeOf<MonitorInfo>() };
+        if (GetMonitorInfo(MonitorFromRect(ref data.rc, 2), ref monitor))
+        {
+            var barWidth = Math.Clamp(data.rc.Right - data.rc.Left, 1,
+                monitor.rcMonitor.Right - monitor.rcMonitor.Left);
+            var height = Math.Clamp(data.rc.Bottom - data.rc.Top, 1,
+                monitor.rcMonitor.Bottom - monitor.rcMonitor.Top);
+            if (data.uEdge is 1 or 3)
+                height = Math.Max(height, 40);
+            data.rc.Left = Math.Clamp(data.rc.Left, monitor.rcMonitor.Left,
+                monitor.rcMonitor.Right - barWidth);
+            data.rc.Top = Math.Clamp(data.rc.Top, monitor.rcMonitor.Top,
+                monitor.rcMonitor.Bottom - height);
+            data.rc.Right = data.rc.Left + barWidth;
+            data.rc.Bottom = data.rc.Top + height;
+        }
 
         var source = PresentationSource.FromVisual(window);
         var dpi = source?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
@@ -60,7 +94,16 @@ public static class TaskbarPositioner
         public uint uCallbackMessage;
         public uint uEdge;
         public Rect rc;
-        public int lParam;
+        public IntPtr lParam;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MonitorInfo
+    {
+        public int cbSize;
+        public Rect rcMonitor;
+        public Rect rcWork;
+        public uint dwFlags;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -74,6 +117,18 @@ public static class TaskbarPositioner
 
     [DllImport("shell32.dll")]
     private static extern IntPtr SHAppBarMessage(int dwMessage, ref AppBarData pData);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+        int x, int y, int cx, int cy, uint flags);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromRect(ref Rect rect, uint flags);
+
+    [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
     private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);

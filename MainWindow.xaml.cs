@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly CancellationTokenSource _shutdown = new();
     private readonly Forms.NotifyIcon _trayIcon;
     private readonly System.Drawing.Icon _appIcon;
+    private OverlayVisibilityController? _visibility;
     private AppSettings _settings;
     private IReadOnlyList<LyricLine> _currentLyrics = [];
     private string _trackKey = string.Empty;
@@ -42,6 +43,7 @@ public partial class MainWindow : Window
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         TaskbarPositioner.Place(this, _settings.Placement);
+        _visibility ??= new OverlayVisibilityController(this, () => _settings.Placement);
         TraceWindow($"loaded; visible={IsVisible}; left={Left}; top={Top}; width={Width}; height={Height}");
         try
         {
@@ -159,6 +161,7 @@ public partial class MainWindow : Window
     {
         Show();
         TaskbarPositioner.Place(this, _settings.Placement);
+        _visibility?.Refresh();
         TraceWindow("revealed by second launch");
     }
 
@@ -191,8 +194,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                Show();
-                TaskbarPositioner.Place(this, _settings.Placement);
+                Reveal();
                 toggle.Text = "隐藏歌词";
             }
         };
@@ -259,6 +261,7 @@ public partial class MainWindow : Window
         }
 
         _timer.Stop();
+        _visibility?.Dispose();
         _shutdown.Cancel();
         _trayIcon.Visible = false;
         _trayIcon.Dispose();
